@@ -1,44 +1,51 @@
+// guarda la imagen actual de cada carrusel
 const state = {};
 
-  function goTo(id, idx) {
-    const car = document.getElementById(id);
-    const track = car.querySelector('.carrusel-track');
-    const dots = car.querySelectorAll('.carrusel-dot');
-    const slides = car.querySelectorAll('.carrusel-slide');
-    const total = slides.length;
-    state[id] = ((idx % total) + total) % total;
-    track.style.transform = `translateX(-${state[id] * 100}%)`;
-    dots.forEach((d,i) => d.classList.toggle('active', i === state[id]));
+// Mueve el carrusel a una imagen específica
+function goTo(id, idx) {
+  const car = document.getElementById(id);
+  const track = car.querySelector('.carrusel-track');
+  const dots = car.querySelectorAll('.carrusel-dot');
+  const slides = car.querySelectorAll('.carrusel-slide');
+  const total = slides.length;
+
+// Si llega al final, vuelve al inicio
+
+  if (idx >= total) {
+    idx = 0;
   }
 
-  function slide(id, dir) {
-    goTo(id, (state[id] || 0) + dir);
+  // Si retrocede desde la primera, va a la última
+  if (idx < 0) {
+    idx = total - 1;
   }
 
-  // Init state
-  ['car-a','car-b','car-f'].forEach(id => { state[id] = 0; });
+  state[id] = idx;
 
-  // Auto-play
-  setInterval(() => { ['car-a','car-b','car-f'].forEach(id => slide(id, 1)); }, 4000);
+  track.style.transform = `translateX(-${state[id] * 100}%)`;
 
-  // Scroll animations
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if(e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }
-    });
-  }, {threshold:0.12});
-
-  document.querySelectorAll('.plantel-block, .logro-item, .timeline-item').forEach(el => {
-    el.style.opacity='0'; el.style.transform='translateY(24px)';
-    el.style.transition='opacity 0.6s ease, transform 0.6s ease';
-    obs.observe(el);
+  // Actualiza qué punto del carrusel queda activo
+  dots.forEach((dot, i) => {
+    if (i === state[id]) {
+      dot.classList.add('active');
+    } else {
+      dot.classList.remove('active');
+    }
   });
+}
 
-  // Nav highlight
-  const secs = document.querySelectorAll('section[id]');
-  const links = document.querySelectorAll('.nav-links a');
-  window.addEventListener('scroll', () => {
-    let cur = '';
-    secs.forEach(s => { if(window.scrollY >= s.offsetTop - 100) cur = s.id; });
-    links.forEach(a => { a.style.color = a.getAttribute('href')==='#'+cur ? 'var(--rojo)' : ''; });
+function slide(id, dir) {
+  const actual = state[id] || 0;
+  goTo(id, actual + dir);
+}
+
+['car-a', 'car-b', 'car-f'].forEach(id => {
+  state[id] = 0;
+});
+
+// Avanza automáticamente cada 4 segundos
+setInterval(() => {
+  ['car-a', 'car-b', 'car-f'].forEach(id => {
+    slide(id, 1);
   });
+}, 4000);
